@@ -3,6 +3,7 @@ import os
 
 CSV_FILE = "bank.csv"
 
+
 ####################################
 class Account:
     OVERDRAFT_LIMIT = -100
@@ -10,7 +11,7 @@ class Account:
     MAX_WITHDRAW = 100
 
     def __init__(self, customer_id, account_kind, balance=0):
-        self.customer_id = customer_id   # عشان اتتبع حساب لكل عميل 
+        self.customer_id = customer_id  # عشان اتتبع حساب لكل عميل
         self.account_kind = account_kind
         self.balance = float(balance)
         self.overdraft_count = 0  # اضافه جديده
@@ -37,7 +38,7 @@ class Account:
         if self.balance < 0:
             self.balance -= Account.OVERDRAFT_FEE
             self.overdraft_count += 1
-            if self.overdraft_count >2:
+            if self.overdraft_count > 2:
                 self.active = False
                 raise ValueError("Account deactivated after 2 overdrafts")
 
@@ -69,7 +70,8 @@ class Checking(Account):
 ####################################
 ####################################
 class Customer:
-    def __init__(self,customer_id,first_name,last_name,password,checking_balance=None,savings_balance=None):
+    def __init__(self,customer_id,first_name,last_name,password,checking_balance=None,savings_balance=None,
+    ):
         self.customer_id = customer_id
         self.first_name = first_name
         self.last_name = last_name
@@ -104,11 +106,13 @@ class Customer:
     #####################
     ############ تسجيل دخول
     def login(self, customer_id, password):
+        # customer_id=input("enter your id :")
+        # password=input("enter your password: ")
         if customer_id == self.customer_id and password == self.password:
             self.is_logged_in = True
             print(f"{self.first_name} Logged in successful!")
             return True
-        print("Invalid username or password.")
+        print("Invalid id or password.")
         return False
 
     ######################################
@@ -120,6 +124,29 @@ class Customer:
 
         else:
             print("You are not logged in .")
+
+    ###########################
+    def transfer(self, from_acc, to_acc, amount, target_customer=None):
+        src = self.get_account(from_acc)
+        if target_customer:
+            com = target_customer.get_account(to_acc)
+        else:
+            com = self.get_account(to_acc)
+
+        if not src or not com:
+            print("Invalid accounts")
+            return False
+
+        try:
+            src.withdraw(amount)
+
+            com.deposit(amount)
+            print(f"Transferrd ${amount} from {from_acc}to{to_acc}")
+            return True
+        except ValueError as error:
+            print(f"Transfer failed:{error}")
+            return False
+
 
 ###########################################
 ###########################################
@@ -163,8 +190,8 @@ class Bank_repo:
                         last_name=row["last_name"],
                         first_name=row["first_name"],
                         password=row["password"],
-                        checking_balance=int(row["balance_checking"]),
-                        savings_balance=int(row["balance_savings"]),
+                        checking_balance=int(row["checking"]),
+                        savings_balance=int(row["savings"]),
                         # ضفت 2 الاخيرات
                     )
                     self.customers.append(cust1)
@@ -173,8 +200,29 @@ class Bank_repo:
         except KeyError as error_msg:
             print("Missing column in CSV:", error_msg)
 
+    ############################################ "يبيلها تعديل"
+    def save_to_csv(self):
+        with open(CSV_FILE, "w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(
+                ["id", "first_name", "last_name", "password", "checking", "savings"]
+            )
+            for cust in self.customers:
+                checking = cust.accounts.get("checking")
+                savings = cust.accounts.get("savings")
+                writer.writerow(
+                    [
+                        cust.customer_id,
+                        cust.first_name,
+                        cust.last_name,
+                        cust.password,
+                        checking.balance if checking else "",
+                        savings.balance if savings else "",
+                    ]
+                )
 
 
+#####################################################
 ####################################
 ####################################
 # se;f.customers that contains the customers that already exist in the bank
@@ -184,9 +232,9 @@ class Bank_repo:
 #  password = input("Enter password: ")
 # new_customer = Customer(username, password)
 # create an instance pf the class Bank
-#ex = Bank_repo()
-#cust1 = Customer("Ali", 1233)
-#ex.add_customer(cust1)
+# ex = Bank_repo()
+# cust1 = Customer("Ali", 1233)
+# ex.add_customer(cust1)
 # example for creating a customer --> cust1  = Customer (username, password)
 # vreate a customer and add it to the bank
 
