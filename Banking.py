@@ -3,20 +3,18 @@ import os
 
 CSV_FILE = "bank.csv"
 
-
-####################################
 class Account:
     OVERDRAFT_LIMIT = -100
     OVERDRAFT_FEE = 35
     MAX_WITHDRAW = 100
-#########
+
     def __init__(self, customer_id, account_kind, balance=0):
         self.customer_id = customer_id 
         self.account_kind = account_kind
         self.balance = float(balance)
         self.overdraft_count = 0 
         self.active = True  
-#########
+
     def deposit(self, amount):
         if amount <= 0:
             raise ValueError("The deposited amount must be greater then zero")
@@ -27,7 +25,7 @@ class Account:
             self.overdraft_count = 0
         return self.balance
     
-#########
+
     def withdraw(self, amount):
 
         if amount <= 0:
@@ -53,7 +51,6 @@ class Account:
     def __str__(self):
         return f"{self.account_kind} Account | Balance: {self.balance}"
 
-###################################
 
 
 class Savings(Account):
@@ -66,7 +63,6 @@ class Checking(Account):
         super().__init__(customer_id, "checking", balance)
 
 
-####################################
 class Customer:
     def __init__(self,customer_id,first_name,last_name,password,checking_balance=None,savings_balance=None,):
         self.customer_id = customer_id.strip()
@@ -82,7 +78,6 @@ class Customer:
         if savings_balance is not None:
             self.accounts["savings"] = Savings(customer_id, savings_balance)
 
-########
     def add_account(self, account_kind, balance=None):
         Mb = account_kind.strip().lower()
         if Mb in self.accounts:
@@ -96,11 +91,10 @@ class Customer:
             raise ValueError("Unknown account")
         self.accounts[Mb] = acco
         return acco
-##########
+
     def get_account(self, account_kind):
         return self.accounts.get(account_kind.lower())
 
-####### تسجيل دخول
     def login(self, customer_id, password): 
         if customer_id == self.customer_id and password == self.password:
             self.is_logged_in = True
@@ -110,7 +104,6 @@ class Customer:
             print("Invalid ID or password.")
             return False
 
-#####تسجيل خروج
     def logout(self):
         if self.is_logged_in:
             self.is_logged_in = False
@@ -119,7 +112,6 @@ class Customer:
         else:
             print("You are not logged in .")
 
-#########
     def transfer(self, from_acc, to_acc, amount, target_customer=None):
         src = self.get_account(from_acc)
         if target_customer:
@@ -148,11 +140,9 @@ class Customer:
             print(f"Transfer failed:{error}")
             return False
         
-###########################################
 class Bank_repo:
     def __init__(self):
         self.customers = []
-#########
     def add_customer(self, customer):
 
         print("welcome! Do you want to open an account? (Yes/No)")
@@ -175,7 +165,7 @@ class Bank_repo:
 
         self.customers.append(customer)
         print(f"Customer'{customer.first_name}' added successfully!")
-##########
+
     def load_customers(self): 
         self.customers = []
         try:
@@ -222,24 +212,10 @@ class Bank_repo:
 
         except FileNotFoundError:
             print("File not found. Starting with empty customer list.")
-            # print("\nLoaded customers:")
-            # print("{:<8} {:<12} {:<12} {:<12} {:<10} {:<10}".format(
-            #     "ID", "First Name", "Last Name", "Password", "Checking", "Savings"
-            # ))
-            # print("-" * 70)
-            # for c in self.customers:
-            #     checking = c.accounts["checking"].balance if "checking" in c.accounts else 0
-            #     savings = c.accounts["savings"].balance if "savings" in c.accounts else 0
-            #     print("{:<8} {:<12} {:<12} {:<12} {:<10} {:<10}".format(
-            #         c.customer_id, c.first_name, c.last_name, c.password, checking, savings
-            #     ))
-
-                    
-               
-#######
+           
     def find_customer(self, customer_id):
      return next((c for c in self.customers if c.customer_id == customer_id), None)
-#######
+
     def save_to_csv(self):
         with open(CSV_FILE, "w", newline="") as file:
             writer = csv.writer(file)
@@ -264,7 +240,6 @@ class Bank_repo:
                         savings.active if savings else "",
                         savings.overdraft_count if savings else "",
                     ])
-#########
 def main():
     bank = Bank_repo()
     bank.load_customers()
@@ -359,4 +334,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-###################################
